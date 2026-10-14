@@ -1,0 +1,66 @@
+# ── Secrets and credentials (never commit these) ──────────────
+kaggle.json
+.kaggle/
+.env
+.env.*
+*.key
+.streamlit/secrets.toml
+
+# ── Data (downloaded from Kaggle; large and licensed separately) ──
+data/
+*.csv
+*.xlsx
+*.xls
+*.parquet
+*.zip
+# Keep the folder structure in Git if you add an empty placeholder file
+!data/.gitkeep
+
+# ── Generated outputs and saved models ────────────────────────
+outputs/
+!outputs/.gitkeep
+models/
+*.joblib
+*.pkl
+*.pickle
+*.h5
+
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# ── Virtual environments ──────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ── Jupyter ───────────────────────────────────────────────────
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# ── Testing and caches ────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.cache/
+
+# ── IDE and editor files ──────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+
+# ── OS files ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Logs and temporary files ──────────────────────────────────
+*.log
+*.tmp
