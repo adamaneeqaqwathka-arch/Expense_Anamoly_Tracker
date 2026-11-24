@@ -1,0 +1,4 @@
+# Everything needed to run the engine, API and Streamlit app.
+# Install the project itself in editable mode so `import anomaly_auditor` works:
+#   pip install -r requirements.txt
+-e .[api,app]

@@ -1,0 +1,3 @@
+# Adds the test and lint tools on top of the runtime requirements.
+-r requirements.txt
+-e .[dev]
