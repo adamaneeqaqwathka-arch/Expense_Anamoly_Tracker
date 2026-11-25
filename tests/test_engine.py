@@ -101,3 +101,17 @@ def test_summary_contents(raw):
     assert -1 <= info["silhouette"] <= 1
     assert len(info["cluster_profile"]) == engine.k_
     assert info["columns"]["amount"] == "Amount"
+
+
+def test_a_cards_first_appearance_in_the_file_is_not_treated_as_suspicious():
+    raw, _ = make_transactions(n=5000, seed=4)
+    table = AnomalyEngine().fit_score(raw)
+    first = table.sort_values("date").groupby("card").head(1).index
+    flagged_first = table.loc[table["flagged"], :].index.isin(first).sum()
+    assert flagged_first <= 10, f"{flagged_first} of {len(first)} first-appearance rows were flagged"
+
+
+def test_first_transaction_flag_is_not_a_model_feature(raw):
+    engine = AnomalyEngine()
+    engine.fit(engine.prepare(raw)[0])
+    assert "is_first_txn" not in engine.builder_.columns_

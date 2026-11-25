@@ -10,6 +10,9 @@ import pandas as pd
 
 from .schema import SchemaError
 
+# Computed for explanations but never given to the model: a card's first transaction in a file is not suspicious,
+# the file just starts there, and a rare 0/1 flag would dominate the distances after scaling.
+NOT_FOR_MODEL = {"is_first_txn"}
 NUMERIC_ORDER = ["amt_cat_z", "log_amt", "merchant_rarity", "hour_sin", "hour_cos",
                  "is_weekend", "is_night", "log_gap", "is_first_txn"]
 
@@ -42,13 +45,15 @@ class FeatureBuilder:
             self.gap_median_ = float(gap.median()) if len(gap) else 0.0
 
         full = self._build_all(df)
-        keep = [c for c in full.columns
-                if full[c].round(6).value_counts(normalize=True).iloc[0] <= self.const_cut]  # near-constant out
+        keep = [c for c in full.columns if c not in NOT_FOR_MODEL
+                and full[c].round(6).value_counts(normalize=True).iloc[0] <= self.const_cut]  # near-constant out
         numeric = [c for c in NUMERIC_ORDER if c in keep]
         corr = full[numeric].corr().abs()
         redundant = {b for i, a in enumerate(numeric) for b in numeric[i + 1:] if corr.loc[a, b] > self.corr_cut}
         self.columns_ = [c for c in full.columns if c in keep and c not in redundant]
-        self.dropped_ = {"near_constant": sorted(set(full.columns) - set(keep)), "redundant": sorted(redundant)}
+        self.dropped_ = {"near_constant": sorted(set(full.columns) - set(keep) - NOT_FOR_MODEL),
+                         "redundant": sorted(redundant)}
+        self.neutral_ = full[self.columns_].mean()     # used when new data lacks an optional column
         if not any(c in NUMERIC_ORDER for c in self.columns_):
             raise SchemaError("The amounts and times show no variation to learn from "
                               "(all transactions look identical).")
@@ -57,7 +62,8 @@ class FeatureBuilder:
     # ---------- applying ----------
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         full = self._build_all(df)
-        return full.reindex(columns=self.columns_, fill_value=0.0)
+        out = full.reindex(columns=self.columns_)
+        return out.fillna(self.neutral_)               # a missing optional column counts as "typical", not as 0
 
     def full(self, df: pd.DataFrame) -> pd.DataFrame:
         """Every candidate feature, including those dropped from the model (used to explain flags)."""
